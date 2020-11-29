@@ -25,10 +25,17 @@ body {
 }
 ul {
 	list-style:none;
+	display: flex;
+	margin-bottom: 50px;
+}
+li
+{
+	margin-right: 30px;
 }
 img {
 	vertical-align:bottom;
 }
+
 .wrapper {
 	max-width:1280px;
 	margin:0 auto;

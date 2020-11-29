@@ -1,67 +1,149 @@
 <?php
 
-$dir_path = 'img/superbox';
+$dir = "img";
+$dir_menu = "img";
+$is_404 = false;
 
 
 
+// Получаем изображения
 
-
-
-// Получаем картинки
-function getImg($dir_path)
+function getImages($dir)
 {
-	$pictures = [];
-	if (file_exists($dir_path)) {
-		$d = opendir($dir_path);
-		while ($file = readdir($d)) {
 
+	if (file_exists($dir)) {
+		$img_data = [];
+		if (is_dir($dir)) {
+			$d = opendir($dir);
 
-
-			if ($file == '.' || $file == '..') {
-				continue;
-			} else if (pathinfo($file, PATHINFO_EXTENSION) == "jpg" || pathinfo($file, PATHINFO_EXTENSION) == "png") {
-				$pictures[] = $dir_path . "/" . $file;
+			while ($img = readdir($d)) {
+				if ($img == "." || $img == "..") {
+					continue;
+				} else if (pathinfo($dir . "/" . $img, PATHINFO_EXTENSION) != "jpg" && pathinfo($dir . "/" . $img, PATHINFO_EXTENSION) != "png") {
+					continue;
+				} else {
+					$img_data[] = $dir . "/" . $img;
+				}
 			}
+
+
+			closedir($d);
+		}
+	}
+
+	return $img_data;
+}
+
+
+
+// Получить элементы меню
+
+function get_menu($dir_menu)
+{
+	if(file_exists($dir_menu))
+	{
+		$menu = [];
+		$d = opendir($dir_menu);
+		while($cat = readdir($d))
+		{
+			if(is_dir($dir_menu . "/" . $cat))
+			{
+				if($cat == "." || $cat =="..")
+				{
+					continue;
+				}
+				else
+				{
+					$menu[] = $cat;
+				}	
+			}
+			
 		}
 		closedir($d);
+		return $menu;
 	}
-	return $pictures;
+
 }
 
-// Выводим картинки
-function showImg($pictures)
+function show_menu($menu)
 {
-	if(!empty($pictures))
+	if(!empty($menu))
 	{
-		foreach ($pictures as $key => $value) { ?>
-			<div class="superbox-list">
-				<img src="<?php echo $value; ?>" data-img="<?php echo $value; ?>" alt="" class="superbox-img">
-			</div>
-	<?php }
+		foreach($menu as $menu_item)
+		{
+			echo "<li><a href=\"index.php?cat=" . $menu_item . "\" >$menu_item</a></li>";
+		}
 	}
+
 }
 
+// echo '<pre>';
+// print_r(get_menu($dir_menu));
+// echo '</pre>';
 
+// Выводим изображения
 
-
-if(file_exists($dir_path))
+function showImages($img_data)
 {
-	$pictures = getImg($dir_path);
-}
-else
-{
-	echo 'Ошибка 404';
-}
-
-
-
-
-
+	if (!empty($img_data)) {
+		foreach ($img_data as $img) {
 
 
 ?>
+			<div class="superbox-list">
+				<img src="<?php echo $img; ?>" data-img="<?php echo $img; ?>" alt="Изображение" class="superbox-img">
+			</div>
+
+<?php
+
+		}
+	}
+}
+
+// Функция выбора категории
+
+function getCategory($dir, $cat)
+{
+	if(isset($cat))
+	{
+		if(!empty($cat))
+		{
+			$dir = $dir . "/" . $cat;
+			return $dir;
+
+		}
+	}
+	else
+	{
+		return $dir . "/category_1";
+	}
+
+}
+
+// Функция вывода ошибки 404
+
+function error_404()
+{
+	global $is_404;
+	$is_404 = true;
+	header("HTTP/1.1 404 Not Found");
+}
+
+$dir = getCategory($dir, $_GET['cat']);
+
+if (file_exists($dir)) 
+{
+	$images = getImages($dir);
+} 
+else 
+{
+	error_404();
+}
 
 
+$menu = get_menu($dir_menu);
+
+?>
 
 <!doctype html>
 <html>
@@ -79,10 +161,26 @@ else
 			<img src="img/logo.png" class="logo-img" alt="Logo">
 		</div>
 
-		
+		<div class="menu">
+			<nav>
+				<ul>
+					<?php show_menu($menu); ?>
+				</ul>
+			</nav>
+		</div>
+
 		<!-- SuperBox -->
 		<div class="superbox">
-			<?php showImg($pictures); ?>
+			<?php
+
+			if ($is_404) { ?>
+				<h1> Ошибка 404: директория не найдена!</h1>
+			<?php } else {
+				showImages($images);
+			}
+
+			?>
+
 			<div class="superbox-float"></div>
 		</div>
 		<!-- /SuperBox -->
@@ -103,3 +201,5 @@ else
 </body>
 
 </html>
+
+<?php ob_end_flush(); ?>
