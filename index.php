@@ -1,10 +1,15 @@
 <?php
 
-$dir = "img";
-$dir_menu = "img";
+if (!empty($_GET['catalog'])) {
+	$HTTP = $_GET['catalog'];
+} else {
+	$HTTP = 'category_1';
+}
+
+$dir = "img/{$HTTP}";
+
+
 $is_404 = false;
-
-
 
 // Получаем изображения
 
@@ -34,52 +39,39 @@ function getImages($dir)
 	return $img_data;
 }
 
-
-
 // Получить элементы меню
 
 function get_menu($dir_menu)
 {
-	if(file_exists($dir_menu))
-	{
+	if (file_exists($dir_menu)) {
 		$menu = [];
 		$d = opendir($dir_menu);
-		while($cat = readdir($d))
-		{
-			if(is_dir($dir_menu . "/" . $cat))
-			{
-				if($cat == "." || $cat =="..")
-				{
+		while ($cat = readdir($d)) {
+			if (is_dir($dir_menu . "/" . $cat)) {
+				if ($cat == "." || $cat == "..") {
 					continue;
-				}
-				else
-				{
+				} else {
 					$menu[] = $cat;
-				}	
+				}
 			}
-			
 		}
 		closedir($d);
 		return $menu;
 	}
-
 }
+$dir_menu = "img";
+$menu = get_menu($dir_menu);
 
 function show_menu($menu)
 {
-	if(!empty($menu))
-	{
-		foreach($menu as $menu_item)
-		{
-			echo "<li><a href=\"index.php?cat=" . $menu_item . "\" >$menu_item</a></li>";
-		}
+	if (!empty($menu)) {
+		foreach ($menu as $menu_item) 
+		{ ?>
+			<a class="<?php if($menu_item == $_GET['catalog']) echo 'active'?>" href="index.php?catalog=<?php echo $menu_item;?>"><?php echo $menu_item;?></a>
+			
+		<?php }
 	}
-
 }
-
-// echo '<pre>';
-// print_r(get_menu($dir_menu));
-// echo '</pre>';
 
 // Выводим изображения
 
@@ -100,26 +92,6 @@ function showImages($img_data)
 	}
 }
 
-// Функция выбора категории
-
-function getCategory($dir, $cat)
-{
-	if(isset($cat))
-	{
-		if(!empty($cat))
-		{
-			$dir = $dir . "/" . $cat;
-			return $dir;
-
-		}
-	}
-	else
-	{
-		return $dir . "/category_1";
-	}
-
-}
-
 // Функция вывода ошибки 404
 
 function error_404()
@@ -129,19 +101,38 @@ function error_404()
 	header("HTTP/1.1 404 Not Found");
 }
 
-$dir = getCategory($dir, $_GET['cat']);
 
-if (file_exists($dir)) 
-{
+
+
+
+
+if (file_exists($dir)) {
+	
 	$images = getImages($dir);
 } 
-else 
+else
 {
 	error_404();
 }
 
 
-$menu = get_menu($dir_menu);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ?>
 
@@ -153,6 +144,16 @@ $menu = get_menu($dir_menu);
 	<title>Superbox, the lightbox, reimagined</title>
 	<meta name="viewport" content="width=device-width,initial-scale=1.0">
 	<link href="css/style.css" rel="stylesheet">
+
+	<style>
+	.active
+{
+	color: #fff;
+	margin-right: 10px;
+	
+}	
+
+	</style>
 </head>
 
 <body>
@@ -163,8 +164,9 @@ $menu = get_menu($dir_menu);
 
 		<div class="menu">
 			<nav>
+				<a href="upload.php">Добавить картинки</a>
 				<ul>
-					<?php show_menu($menu); ?>
+					<?php if($is_404 == false) {show_menu($menu);} ?>
 				</ul>
 			</nav>
 		</div>
@@ -201,5 +203,3 @@ $menu = get_menu($dir_menu);
 </body>
 
 </html>
-
-<?php ob_end_flush(); ?>
